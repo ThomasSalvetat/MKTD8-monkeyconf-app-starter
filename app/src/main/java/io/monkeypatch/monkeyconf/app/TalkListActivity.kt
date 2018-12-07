@@ -86,7 +86,8 @@ class TalkListActivity : AppCompatActivity(), TalkListView {
 class TalkViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     fun displayTalk(talk: Talk, action: (String) -> Unit) {
-        itemView.talkHourTextView.text = talk.startTime
+        itemView.talkStartHourTextView.text = talk.startTime.take(5)
+        itemView.talkEndHourTextView.text = talk.endTime.take(5)
         itemView.talkTitleTextView.text = talk.title
         itemView.talkSubTitleTextView.text = talk.description
         itemView.setOnClickListener { action(talk.id) }
