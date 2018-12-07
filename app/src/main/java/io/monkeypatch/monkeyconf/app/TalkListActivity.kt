@@ -12,6 +12,7 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import io.monkeypatch.monkeyconf.app.TalkListAdapter.Companion.TALK_ID
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_talk.view.*
 
@@ -77,7 +78,7 @@ class TalkListActivity : AppCompatActivity(), TalkListView {
 
     private fun openTalk(talkId: String) {
         startActivity(
-            Intent(this, TalkDetailActivity::class.java).putExtra("talkId", talkId)
+            Intent(this, TalkDetailActivity::class.java).putExtra(TALK_ID, talkId)
         )
     }
 }
@@ -105,5 +106,9 @@ class TalkListAdapter(val talks: List<Talk>, val action: (String) -> Unit) : Rec
 
     override fun onBindViewHolder(viewHolder: TalkViewHolder, pos: Int) {
         viewHolder.displayTalk(talks[pos], action)
+    }
+
+    companion object {
+        const val TALK_ID = "TALK_ID"
     }
 }

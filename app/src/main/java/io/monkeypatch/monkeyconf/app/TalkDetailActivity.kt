@@ -3,12 +3,17 @@ package io.monkeypatch.monkeyconf.app
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import io.monkeypatch.monkeyconf.app.TalkListAdapter.Companion.TALK_ID
 import kotlinx.android.synthetic.main.activity_detail.*
 
-class TalkDetailActivity : AppCompatActivity() {
+class TalkDetailActivity : AppCompatActivity(), TalkDetailsView {
+
+    private val presenter = Container.getDetailsPresenter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        presenter.onCreate()
 
         supportActionBar?.apply {
             setDisplayShowHomeEnabled(true)
@@ -16,15 +21,20 @@ class TalkDetailActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_detail)
-        exampleDisplayData()
+        presenter.getTalk(intent.getStringExtra(TALK_ID))
     }
 
-    fun exampleDisplayData() {
-        supportActionBar?.title = "title"
-        speakersTextView.text = "speakers"
-        hourTextView.text = "hour"
-        roomTextView.text = "room"
-        descriptionTextView.text = "description"
+    override fun displayError(e: Exception) {
+    }
+
+    override fun displayTalk(talk: Talk?) {
+        talk?.let { talk ->
+            supportActionBar?.title = talk.title
+            speakersTextView.text = talk.speakers.map { "${it.firstName} ${it.lastName}" }.joinToString(", ")
+            hourTextView.text = talk.startTime.take(5)
+            roomTextView.text = talk.room.name
+            descriptionTextView.text = talk.description
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean =

@@ -9,15 +9,18 @@ class ConferencePresenter(
     private val uiDispatcher: CoroutineDispatcher
 ) : BasePresenter<TalkListView>(view) {
 
+    private var talks = emptyList<Talk>()
+
     override fun onCreate() {
         super.onCreate()
-        loadConference()
+        loadConferences()
     }
 
-    fun loadConference() {
+    private fun loadConferences() {
         launch(uiDispatcher) {
             try {
-                view.displayConferences(repo.getConference())
+                talks = repo.getConference()
+                view.displayConferences(talks)
             } catch (e: Exception) {
                 view.displayError(e)
             } finally {
