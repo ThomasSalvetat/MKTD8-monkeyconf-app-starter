@@ -12,10 +12,13 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import io.monkeypatch.monkeyconf.app.TalkListAdapter.Companion.TALK_ID
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_talk.view.*
 
-class TalkListActivity : AppCompatActivity() {
+class TalkListActivity : AppCompatActivity(), TalkListView {
+
+    private val presenter = Container.getConferencePresenter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,9 +29,26 @@ class TalkListActivity : AppCompatActivity() {
             setHasFixedSize(true)
         }
 
-        sampleDisplayList()
+        presenter.onCreate()
     }
 
+    override fun showLoading(loading: Boolean) {
+        recyclerView.visibility = if (loading) View.GONE else View.VISIBLE
+        progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+    }
+
+    override fun displayConferences(conferences: List<Talk>) {
+        recyclerView.swapAdapter(
+            TalkListAdapter(
+                conferences,
+                this::openTalk
+            ),
+            false
+        )
+    }
+
+    override fun displayError(e: Exception) {
+    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_search, menu)
@@ -51,43 +71,32 @@ class TalkListActivity : AppCompatActivity() {
     private fun filterUpdated(text: String) {
     }
 
-
     fun View.dismissKeyboard() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
-
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
-    fun sampleDisplayList() {
-        recyclerView.swapAdapter(TalkListAdapter(
-            listOf("a", "b", "c"),
-            this::openTalk),
-            false
-        )
-    }
-
     private fun openTalk(talkId: String) {
         startActivity(
-            Intent(this, TalkDetailActivity::class.java).putExtra("talkId", talkId)
+            Intent(this, TalkDetailActivity::class.java).putExtra(TALK_ID, talkId)
         )
     }
 }
 
 
 class TalkViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    fun displayTalk(summary: Any, action: (String) -> Unit) {
-        itemView.talkHourTextView.text =  "hour"
-        itemView.talkTitleTextView.text = "title"
-        itemView.talkSubTitleTextView.text = "subtitle"
-        itemView.setOnClickListener { action("click") }
+
+    fun displayTalk(talk: Talk, action: (String) -> Unit) {
+        itemView.talkStartHourTextView.text = talk.startTime.take(5)
+        itemView.talkEndHourTextView.text = talk.endTime.take(5)
+        itemView.talkTitleTextView.text = talk.title
+        itemView.talkSubTitleTextView.text = talk.description
+        itemView.setOnClickListener { action(talk.id) }
     }
 }
 
-class TalkListAdapter(val talks: List<Any>, val action: (String) -> Unit) : RecyclerView.Adapter<TalkViewHolder>() {
+class TalkListAdapter(val talks: List<Talk>, val action: (String) -> Unit) : RecyclerView.Adapter<TalkViewHolder>() {
+
     override fun onCreateViewHolder(parent: ViewGroup, pos: Int): TalkViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_talk, parent, false)
         return TalkViewHolder(view)
@@ -99,4 +108,7 @@ class TalkListAdapter(val talks: List<Any>, val action: (String) -> Unit) : Recy
         viewHolder.displayTalk(talks[pos], action)
     }
 
+    companion object {
+        const val TALK_ID = "TALK_ID"
+    }
 }
